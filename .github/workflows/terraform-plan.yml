@@ -120,15 +120,9 @@ on:
   pull_request:
     branches:
       - main
-      - dev
-      - staging
-      - production
   push:
     branches:
-      - main
-      - dev
-      - staging
-      - production      
+      - main    
 
 permissions:
   id-token: write
@@ -144,40 +138,75 @@ jobs:
       TF_VERSION: ${{ secrets.TF_VERSION }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
       TF_PLAN_CACHE: terraform.tfplan
+      AWS_ROLE: ${{ secrets.AWS_ROLE }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3.5.0
 
-      - name: Set AWS Account and Role
-        run: |
-          case "${{ github.base_ref }}" in
-            "erm-development")
-              echo "AWS_ACCOUNT=${{ secrets.AWS_ACCOUNT_ERM_DEV }}" >> $GITHUB_ENV
-              echo "ROLE_ARN=${{ secrets.ROLE_ARN_ERM_DEV }}" >> $GITHUB_ENV
-              ;;
-          esac
-
-      - name: Debug Info
-        run: |
-          echo "AWS_ACCOUNT: ${{ env.AWS_ACCOUNT }}"
-          echo "ROLE_ARN: ${{ env.ROLE_ARN }}"
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: "arn:aws:iam::960742198541:role/github-action-terraform"
+          role-to-assume: ${{ env.AWS_ROLE }}
           aws-region: us-east-1
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3.1.2
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
+      - name: Debug Info
+        run: |
+          echo "Branch: ${{ github.ref }}"
+          echo "AWS_ACCOUNT: ${{ env.AWS_ACCOUNT }}"
+          echo "AWS_ROLE: ${{ env.AWS_ROLE }}"
+          echo "Terraform Version: ${{ env.TF_VERSION }}"
+
+      - name: Terraform Format
+        run: terraform fmt -recursive
 
       - name: Terraform Init
         id: init
         run: terraform init
 
+      - name: Terraform Validate
+        run: terraform validate -no-color
+
       - name: Terraform Plan
         id: plan
         run: terraform plan -no-color -input=false -out=${{ env.TF_PLAN_CACHE }}
+
+      - name: Terraform Plan Status
+        if: failure()
+        run: exit 1
+
+      - name: Sanitize Ref Name
+        run: echo "SANITIZED_REF=${GITHUB_REF//\//_}" >> $GITHUB_ENV
+
+      - name: Upload Plan Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: terraform-plan-${{ env.SANITIZED_REF }}
+          path: ${{ env.TF_PLAN_CACHE }}
+
+      - name: Post Plan Comment
+        id: comment
+        uses: actions/github-script@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        with:
+          script: |
+            const output = `#### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`${process.env.PLAN}\`\`\`
+
+            </details>
+
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+
+            })
