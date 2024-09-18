@@ -64,6 +64,19 @@ jobs:
       - name: Terraform Validate
         id: validate
         run: terraform validate -no-color
+      
+            - name: Terraform plan
+        run: |
+          terraform plan
 
+      - uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ github.TOKEN }}
+          approvers: yahyagulshan
+          minimum-approvals: 1
+          issue-title: "Deploying v1.0.0 to prod"
+          issue-body: "Review the terraform plan, then approve or deny the deployment of v1.0.0 to prod."
+          exclude-workflow-initiator-as-approver: false
+          
       - name: Terraform Apply
         run: terraform apply -auto-approve -no-color
