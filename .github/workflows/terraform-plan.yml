@@ -4,9 +4,16 @@ on:
   pull_request:
     branches:
       - main
-      # - dev
-      # - staging
-      # - production
+      - dev
+      - staging
+      - production
+
+  push:
+    branches:
+      - main
+      - dev
+      - staging
+      - production      
 
 permissions:
   id-token: write
