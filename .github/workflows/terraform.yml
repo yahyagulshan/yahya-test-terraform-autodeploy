@@ -42,10 +42,10 @@ jobs:
 
       # Initialize Terraform
       - name: Terraform Init
-        run: terraform init \
-              -backend-config="bucket=${{ secrets.TF_BACKEND_BUCKET }}" \
-              -backend-config="key=${{ secrets.TF_BACKEND_KEY }}" \
-              -backend-config="region=${{ secrets.TF_BACKEND_REGION }}"
+        run: terraform init 
+              # -backend-config="bucket=${{ secrets.TF_BACKEND_BUCKET }}" \
+              # -backend-config="key=${{ secrets.TF_BACKEND_KEY }}" \
+              # -backend-config="region=${{ secrets.TF_BACKEND_REGION }}"
 
       # Terraform Plan
       - name: Terraform Plan
