@@ -188,7 +188,7 @@ jobs:
         id: comment
         uses: actions/github-script@v6
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
           PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
         with:
           script: |
