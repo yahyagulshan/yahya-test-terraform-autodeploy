@@ -1,12 +1,12 @@
-export
-TF_WORKSPACE_KEY_PREFIX=codepipeline
+# export
+# TF_WORKSPACE_KEY_PREFIX=iam
 
 us-east-1-test-account:
 	$(eval export AWS_PROFILE=test-account)
 	$(eval export AWS_REGION=us-east-1)
-	$(eval export AWS_DYNAMODB_TABLE=terraform-backend.lock)
-	$(eval export AWS_S3_BUCKET=yahya-test-control-tower-dev-terraform-backend-us-east-1)
-	$(eval export ENV_NAME=test)
+	# $(eval export AWS_DYNAMODB_TABLE=terraform-backend.lock)
+	# $(eval export AWS_S3_BUCKET=test-static-assets-strapi)
+	$(eval export ENV_NAME=admin)
 	@true
 
 
@@ -19,12 +19,12 @@ terraform-clean:
 
 init: terraform-clean
 	terraform init \
-		-backend-config="bucket=${AWS_S3_BUCKET}" \
-		-backend-config="workspace_key_prefix=${AWS_REGION}/${TF_WORKSPACE_KEY_PREFIX}" \
-		-backend-config="dynamodb_table=${AWS_DYNAMODB_TABLE}" \
-		-backend-config="region=${AWS_REGION}"
-	- terraform workspace new ${ENV_NAME}
-	terraform workspace select ${ENV_NAME}
+	# 	-backend-config="bucket=${AWS_S3_BUCKET}" \
+	# 	-backend-config="workspace_key_prefix=${AWS_REGION}/${TF_WORKSPACE_KEY_PREFIX}" \
+	# 	-backend-config="dynamodb_table=${AWS_DYNAMODB_TABLE}" \
+	# 	-backend-config="region=${AWS_REGION}"
+	# - terraform workspace new ${ENV_NAME}
+	# terraform workspace select ${ENV_NAME}
 
 show: init
 	terraform show \
