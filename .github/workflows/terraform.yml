@@ -40,48 +40,68 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.TF_BACKEND_REGION }}
 
-  # Terraform Init
-      - name: Terraform Init
-        run: terraform init
+  # # Terraform Init
+  #     - name: Terraform Init
+  #       run: terraform init
 
-      # Terraform Plan
-      - name: Terraform Plan
-        id: tf_plan
-        run: terraform plan -out=tfplan
+  #     # Terraform Plan
+  #     - name: Terraform Plan
+  #       id: tf_plan
+  #       run: terraform plan -out=tfplan
 
-      # Show the plan output for review
-      - name: Terraform Plan Status
-        if: failure() || success()
-        run: echo "Plan completed with status $?"
+  #     # Show the plan output for review
+  #     - name: Terraform Plan Status
+  #       if: failure() || success()
+  #       run: echo "Plan completed with status $?"
 
-  approval:
-    name: Manual Approval
-    needs: terraform
-    runs-on: ubuntu-latest
-    environment:
-      name: production
-      # Requires a manual approval if environment protection rules are enabled
+  # approval:
+  #   name: Manual Approval
+  #   needs: terraform
+  #   runs-on: ubuntu-latest
+  #   environment:
+  #     name: production
+  #     # Requires a manual approval if environment protection rules are enabled
 
-    steps:
-      - name: Wait for manual approval
-        run: echo "Waiting for manual approval to proceed"
+  #   steps:
+  #     - name: Wait for manual approval
+  #       run: echo "Waiting for manual approval to proceed"
 
-  apply:
-    name: Terraform Apply
-    needs: approval
-    runs-on: ubuntu-latest
+  # apply:
+  #   name: Terraform Apply
+  #   needs: approval
+  #   runs-on: ubuntu-latest
 
-    steps:
-      # Checkout the code again in this job
-      - name: Checkout repository
-        uses: actions/checkout@v3
+  #   steps:
+  #     # Checkout the code again in this job
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v3
 
-      # Setup Terraform
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+  #     # Setup Terraform
+  #     - name: Setup Terraform
+  #       uses: hashicorp/setup-terraform@v2
+  #       with:
+  #         terraform_version: 1.5.0
+
+  #     # Terraform Apply
+  #     - name: Terraform Apply
+  #       run: terraform apply "tfplan"
+      - name: Terraform init and validate
+        run: |
+          terraform init
+
+      - name: Terraform plan
+        run: |
+          terraform plan
+
+      - uses: trstringer/manual-approval@v1
         with:
-          terraform_version: 1.5.0
+          secret: ${{ github.TOKEN }}
+          approvers: yahyagulshan
+          minimum-approvals: 1
+          issue-title: "Deploying v1.0.0 to prod"
+          issue-body: "Review the terraform plan, then approve or deny the deployment of v1.0.0 to prod."
+          exclude-workflow-initiator-as-approver: false
 
-      # Terraform Apply
-      - name: Terraform Apply
-        run: terraform apply "tfplan"
+      - name: Terraform apply
+        run: |
+          terraform apply
