@@ -41,18 +41,18 @@ jobs:
               echo "AWS_ACCOUNT=${{ secrets.AWS_ACCOUNT_ERM_PROD }}" >> $GITHUB_ENV
               echo "ROLE_ARN=${{ secrets.ROLE_ARN_ERM_PROD }}" >> $GITHUB_ENV
               ;;
-            "production")
-              echo "AWS_ACCOUNT=${{ secrets.AWS_ACCOUNT_PROD }}" >> $GITHUB_ENV
-              echo "ROLE_ARN=${{ secrets.ROLE_ARN_PROD }}" >> $GITHUB_ENV
-              ;;
-            "erm-development")
-              echo "AWS_ACCOUNT=${{ secrets.AWS_ACCOUNT_ERM_DEV }}" >> $GITHUB_ENV
-              echo "ROLE_ARN=${{ secrets.ROLE_ARN_ERM_DEV }}" >> $GITHUB_ENV
-              ;;
-            *)
-              echo "AWS_ACCOUNT=${{ secrets.AWS_ACCOUNT_DEV }}" >> $GITHUB_ENV
-              echo "ROLE_ARN=${{ secrets.ROLE_ARN_DEV }}" >> $GITHUB_ENV
-              ;;
+            # # "production")
+            # #   echo "AWS_ACCOUNT=${{ secrets.AWS_ACCOUNT_PROD }}" >> $GITHUB_ENV
+            # #   echo "ROLE_ARN=${{ secrets.ROLE_ARN_PROD }}" >> $GITHUB_ENV
+            # #   ;;
+            # # "erm-development")
+            # #   echo "AWS_ACCOUNT=${{ secrets.AWS_ACCOUNT_ERM_DEV }}" >> $GITHUB_ENV
+            # #   echo "ROLE_ARN=${{ secrets.ROLE_ARN_ERM_DEV }}" >> $GITHUB_ENV
+            # #   ;;
+            # # *)
+            # #   echo "AWS_ACCOUNT=${{ secrets.AWS_ACCOUNT_DEV }}" >> $GITHUB_ENV
+            # #   echo "ROLE_ARN=${{ secrets.ROLE_ARN_DEV }}" >> $GITHUB_ENV
+            # #   ;;
           esac
           echo "Using AWS Account: $AWS_ACCOUNT"
           echo "Using Role: $ROLE_ARN"
