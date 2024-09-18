@@ -37,13 +37,11 @@ jobs:
       - name: Set AWS Account and Role
         run: |
           case "${{ github.base_ref }}" in
-            "erm-production")
-              echo "AWS_ACCOUNT=${{ secrets.AWS_ACCOUNT_ERM_PROD }}" >> $GITHUB_ENV
-              echo "ROLE_ARN=${{ secrets.ROLE_ARN_ERM_PROD }}" >> $GITHUB_ENV
-
-          echo "Using AWS Account: $AWS_ACCOUNT"
-          echo "Using Role: $ROLE_ARN"
-
+            "erm-development")
+              echo "AWS_ACCOUNT=${{ secrets.AWS_ACCOUNT_ERM_DEV }}" >> $GITHUB_ENV
+              echo "ROLE_ARN=${{ secrets.ROLE_ARN_ERM_DEV }}" >> $GITHUB_ENV
+              ;;
+          esac
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3.1.2
         with:
