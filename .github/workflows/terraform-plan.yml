@@ -1,13 +1,15 @@
-#
+
 name: Terraform Plan
 
 on:
   pull_request:
     branches:
       - main
+      - test
   push:
     branches:
-      - main    
+      - main
+      - test    
 
 permissions:
   id-token: write
