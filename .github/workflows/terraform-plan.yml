@@ -4,10 +4,9 @@ name: Terraform Plan
 on:
   pull_request:
     branches:
+      - main
       - test
-  push:
-    branches:
-      - test   
+
 
 permissions:
   id-token: write
