@@ -19,33 +19,25 @@ jobs:
     env:
       TF_VERSION: ${{ secrets.TF_VERSION }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
+      TF_PLAN_CACHE: terraform.tfplan
+      AWS_ROLE: ${{ secrets.AWS_ROLE }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3.5.0
 
-      - name: Set AWS Account and Role
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE }}
+          aws-region: us-east-1
+
+      - name: Debug Info
         run: |
-          case "${{ github.ref_name }}" in
-            "erm-production")
-              echo "AWS_ACCOUNT=${{ secrets.AWS_ACCOUNT_ERM_PROD }}" >> $GITHUB_ENV
-              echo "ROLE_ARN=${{ secrets.ROLE_ARN_ERM_PROD }}" >> $GITHUB_ENV
-              ;;
-            "production")
-              echo "AWS_ACCOUNT=${{ secrets.AWS_ACCOUNT_PROD }}" >> $GITHUB_ENV
-              echo "ROLE_ARN=${{ secrets.ROLE_ARN_PROD }}" >> $GITHUB_ENV
-              ;;
-            "erm-development")
-              echo "AWS_ACCOUNT=${{ secrets.AWS_ACCOUNT_ERM_DEV }}" >> $GITHUB_ENV
-              echo "ROLE_ARN=${{ secrets.ROLE_ARN_ERM_DEV }}" >> $GITHUB_ENV
-              ;;
-            *)
-              echo "AWS_ACCOUNT=${{ secrets.AWS_ACCOUNT_DEV }}" >> $GITHUB_ENV
-              echo "ROLE_ARN=${{ secrets.ROLE_ARN_DEV }}" >> $GITHUB_ENV
-              ;;
-          esac
-          echo "Using AWS Account: $AWS_ACCOUNT"
-          echo "Using Role: $ROLE_ARN"
+          echo "Branch: ${{ github.ref }}"
+          echo "AWS_ACCOUNT: ${{ env.AWS_ACCOUNT }}"
+          echo "AWS_ROLE: ${{ env.AWS_ROLE }}"
+          echo "Terraform Version: ${{ env.TF_VERSION }}"
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3.1.2
