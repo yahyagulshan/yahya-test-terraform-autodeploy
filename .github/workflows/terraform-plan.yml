@@ -76,14 +76,12 @@ jobs:
           PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
         with:
           script: |
-            const fs = require('fs');
-            const planContent = fs.readFileSync('plan_output.txt', 'utf8');
             const output = `#### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
             #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
 
             <details><summary>Show Plan</summary>
 
-            \`\`\`${planContent}\`\`\`
+            \`\`\`${process.env.PLAN}\`\`\`
 
             </details>
 
@@ -96,6 +94,3 @@ jobs:
               body: output
 
             })
-
-
-
