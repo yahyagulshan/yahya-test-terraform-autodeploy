@@ -4,7 +4,9 @@ on:
   push:
     branches:
       - main
-      - test
+      - dev
+      - staging
+      - production
 
 jobs:
   apply:
@@ -13,10 +15,12 @@ jobs:
     permissions:
       id-token: write
       contents: read
+      issues: write
 
     env:
       TF_VERSION: ${{ secrets.TF_VERSION }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
+      TF_PLAN_CACHE: terraform.tfplan
       AWS_ROLE: ${{ secrets.AWS_ROLE }}
 
     steps:
@@ -29,6 +33,13 @@ jobs:
           role-to-assume: ${{ env.AWS_ROLE }}
           aws-region: us-east-1
 
+      - name: Debug Info
+        run: |
+          echo "Branch: ${{ github.ref }}"
+          echo "AWS_ACCOUNT: ${{ env.AWS_ACCOUNT }}"
+          echo "AWS_ROLE: ${{ env.AWS_ROLE }}"
+          echo "Terraform Version: ${{ env.TF_VERSION }}"
+
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3.1.2
         with:
@@ -37,7 +48,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ env.AWS_ROLE }}
+          role-to-assume: ${{ env.ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Terraform Init
@@ -53,7 +64,7 @@ jobs:
 
       - uses: trstringer/manual-approval@v1
         with:
-          secret: ${{ github.TOKEN }}
+          secret: ${{ secrets.G_TOKEN }}
           approvers: yahyagulshan
           minimum-approvals: 1
           issue-title: "Deploying v1.0.0 to prod"
