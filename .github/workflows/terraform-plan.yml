@@ -1,3 +1,100 @@
+# name: Terraform Plan
+
+# on:
+#   pull_request:
+#     branches:
+#       - main
+#   push:
+#     branches:
+#       - main    
+
+# permissions:
+#   id-token: write
+#   contents: read
+#   pull-requests: write
+
+# jobs:
+#   plan:
+#     name: Terraform Plan ${{ github.ref }}
+#     runs-on: ubuntu-latest
+
+#     env:
+#       TF_VERSION: ${{ secrets.TF_VERSION }}
+#       AWS_REGION: ${{ secrets.AWS_REGION }}
+#       TF_PLAN_CACHE: terraform.tfplan
+#       AWS_ROLE: ${{ secrets.AWS_ROLE }}
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3.5.0
+
+#       - name: Configure AWS credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           role-to-assume: ${{ env.AWS_ROLE }}
+#           aws-region: us-east-1
+
+#       - name: Debug Info
+#         run: |
+#           echo "Branch: ${{ github.ref }}"
+#           echo "AWS_ACCOUNT: ${{ env.AWS_ACCOUNT }}"
+#           echo "AWS_ROLE: ${{ env.AWS_ROLE }}"
+#           echo "Terraform Version: ${{ env.TF_VERSION }}"
+
+#       - name: Terraform Format
+#         run: terraform fmt -recursive
+
+#       - name: Terraform Init
+#         id: init
+#         run: terraform init
+
+#       - name: Terraform Validate
+#         run: terraform validate -no-color
+
+#       - name: Terraform Plan
+#         id: plan
+#         run: terraform plan -no-color -input=false -out=${{ env.TF_PLAN_CACHE }}
+
+#       - name: Terraform Plan Status
+#         if: failure()
+#         run: exit 1
+
+#       - name: Sanitize Ref Name
+#         run: echo "SANITIZED_REF=${GITHUB_REF//\//_}" >> $GITHUB_ENV
+
+#       - name: Upload Plan Artifact
+#         uses: actions/upload-artifact@v3
+#         with:
+#           name: terraform-plan-${{ env.SANITIZED_REF }}
+#           path: ${{ env.TF_PLAN_CACHE }}
+
+#       - name: Post Plan Comment
+#         id: comment
+#         uses: actions/github-script@v6
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
+#           PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+#         with:
+#           script: |
+#             const output = `#### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+#             #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+
+#             <details><summary>Show Plan</summary>
+
+#             \`\`\`${process.env.PLAN}\`\`\`
+
+#             </details>
+
+#             *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*`;
+
+#             github.rest.issues.createComment({
+#               issue_number: context.issue.number,
+#               owner: context.repo.owner,
+#               repo: context.repo.repo,
+#               body: output
+
+#             })
+
 name: Terraform Plan
 
 on:
@@ -54,34 +151,34 @@ jobs:
       - name: Terraform Plan
         id: plan
         run: terraform plan -no-color -input=false -out=${{ env.TF_PLAN_CACHE }}
+        # Save the output to a file
+        continue-on-error: true
 
-      - name: Terraform Plan Status
-        if: failure()
-        run: exit 1
-
-      - name: Sanitize Ref Name
-        run: echo "SANITIZED_REF=${GITHUB_REF//\//_}" >> $GITHUB_ENV
+      - name: Capture Plan Output
+        id: plan_output
+        run: terraform show -no-color ${TF_PLAN_CACHE} > plan_output.txt
 
       - name: Upload Plan Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: terraform-plan-${{ env.SANITIZED_REF }}
-          path: ${{ env.TF_PLAN_CACHE }}
+          name: terraform-plan-${{ github.ref_name }}
+          path: plan_output.txt
 
       - name: Post Plan Comment
         id: comment
         uses: actions/github-script@v6
         env:
           GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
-          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
         with:
           script: |
+            const fs = require('fs');
+            const planContent = fs.readFileSync('plan_output.txt', 'utf8');
             const output = `#### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
             #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
 
             <details><summary>Show Plan</summary>
 
-            \`\`\`${process.env.PLAN}\`\`\`
+            \`\`\`${planContent}\`\`\`
 
             </details>
 
@@ -92,5 +189,22 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: output
+            });
+            
+      - name: Send Email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.example.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "Terraform Plan for ${{ github.ref }} - ${{ github.event_name }}"
+          body: |
+            Terraform Plan for ${{ github.ref }}:
+            
+            \`\`\`
+            ${{ steps.plan_output.outputs }}
+            \`\`\`
+          to: your-email@example.com
+          from: GitHub Actions <no-reply@example.com>
 
-            })
