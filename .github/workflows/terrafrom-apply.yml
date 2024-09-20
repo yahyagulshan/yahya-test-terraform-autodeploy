@@ -57,7 +57,7 @@ jobs:
         id: validate
         run: terraform validate -no-color
       
-            - name: Terraform plan
+      - name: Terraform plan
         run: |
           terraform plan
 
