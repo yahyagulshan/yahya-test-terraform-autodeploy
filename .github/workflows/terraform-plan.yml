@@ -170,43 +170,51 @@ jobs:
       - name: Terraform Plan
         id: plan
         run: terraform plan -no-color -input=false -out=${{ env.TF_PLAN_CACHE }}
+        continue-on-error: true
 
-      - name: Terraform Plan Status
-        if: failure()
-        run: exit 1
+      - name: Capture Plan Output
+        id: capture_output
+        run: |
+          if [ -f "${TF_PLAN_CACHE}" ]; then
+            terraform show -no-color ${TF_PLAN_CACHE} > plan_output.txt
+            cat plan_output.txt
+          else
+            echo "Plan cache not found!"
+            exit 1
+          fi
 
-      - name: Sanitize Ref Name
-        run: echo "SANITIZED_REF=${GITHUB_REF//\//_}" >> $GITHUB_ENV
-
-      - name: Upload Plan Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: terraform-plan-${{ env.SANITIZED_REF }}
-          path: ${{ env.TF_PLAN_CACHE }}
+      - name: Check Plan Output
+        run: ls -la plan_output.txt
 
       - name: Post Plan Comment
         id: comment
         uses: actions/github-script@v6
         env:
           GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
-          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
         with:
           script: |
-            const output = `#### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+            const fs = require('fs');
+            try {
+              const planContent = fs.readFileSync('plan_output.txt', 'utf8');
+              const output = `#### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+              #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
 
-            <details><summary>Show Plan</summary>
+              <details><summary>Show Plan</summary>
 
-            \`\`\`${process.env.PLAN}\`\`\`
+              \`\`\`${planContent}\`\`\`
 
-            </details>
+              </details>
 
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*`;
+              *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*`;
 
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: output
+              });
+            } catch (err) {
+              console.error('Error reading plan output file:', err);
+              throw err;
+            }
 
-            })
