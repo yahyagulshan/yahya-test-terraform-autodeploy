@@ -65,7 +65,7 @@ jobs:
       - uses: trstringer/manual-approval@v1
         with:
           secret: ${{ secrets.G_TOKEN }}
-          approvers: yahyagulshan
+          approvers: yahyagulshan, yahyaawan
           minimum-approvals: 1
           issue-title: "Deploying v1.0.0 to prod"
           issue-body: "Review the terraform plan, then approve or deny the deployment of v1.0.0 to prod."
