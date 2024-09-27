@@ -68,7 +68,7 @@ jobs:
           approvers: yahyagulshan, yahyaawan
           minimum-approvals: 1
           issue-title: "echo Pull Request ID: ${{ github.event.pull_request.number }}"
-          issue-body: "Review the terraform plan, then approve or deny the deployment of echo "Branch name: ${{ github.head_ref }}"."
+          issue-body: "Review the terraform plan then approve or deny the deployment of echo "Branch name: ${{ github.head_ref }}"
           exclude-workflow-initiator-as-approver: false
           
       - name: Terraform Apply
