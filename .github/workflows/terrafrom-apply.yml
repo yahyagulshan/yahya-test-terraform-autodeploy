@@ -7,6 +7,12 @@ on:
       - dev
       - staging
       - production
+  pull_request:
+    branches:
+      - main
+      - dev
+      - staging
+      - production    
 
 jobs:
   apply:
@@ -36,6 +42,7 @@ jobs:
       - name: Debug Info
         run: |
           echo "Branch: ${{ github.ref }}"
+          echo "Pull Request ID: ${{ github.event.pull_request.number }}"
           echo "AWS_ACCOUNT: ${{ env.AWS_ACCOUNT }}"
           echo "AWS_ROLE: ${{ env.AWS_ROLE }}"
           echo "Terraform Version: ${{ env.TF_VERSION }}"
@@ -58,7 +65,7 @@ jobs:
         id: validate
         run: terraform validate -no-color
       
-      - name: Terraform plan
+      - name: Terraform Plan
         run: |
           terraform plan
 
@@ -67,8 +74,8 @@ jobs:
           secret: ${{ secrets.G_TOKEN }}
           approvers: yahyagulshan, yahyaawan
           minimum-approvals: 1
-          issue-title: "echo Pull Request ID: ${{ github.event.pull_request.number }}"
-          issue-body: "echo Branch name: ${{ github.head_ref }}"
+          issue-title: "Pull Request ID: ${{ github.event.pull_request.number }}"
+          issue-body: "Branch name: ${{ github.head_ref }}"
           exclude-workflow-initiator-as-approver: false
           
       - name: Terraform Apply
