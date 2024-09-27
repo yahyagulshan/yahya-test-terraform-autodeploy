@@ -67,8 +67,8 @@ jobs:
           secret: ${{ secrets.G_TOKEN }}
           approvers: yahyagulshan, yahyaawan
           minimum-approvals: 1
-          issue-title: "Deploying v1.0.0 to prod"
-          issue-body: "Review the terraform plan, then approve or deny the deployment of v1.0.0 to prod."
+          issue-title: "echo "Pull Request ID: ${{ github.event.pull_request.number }}"
+          issue-body: "Review the terraform plan, then approve or deny the deployment of echo "Branch name: ${{ github.head_ref }}"."
           exclude-workflow-initiator-as-approver: false
           
       - name: Terraform Apply
