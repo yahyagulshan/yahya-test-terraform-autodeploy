@@ -67,7 +67,7 @@ jobs:
           minimum-approvals: 1
           issue-title: "Pull Request ID: ${{ github.event.pull_request.number }}"
           issue-body: |
-            "Please review the Terraform plan and approve or deny the deployment to production"
+            Please review the Terraform plan and approve or deny the deployment to production
             Branch name: ${{ github.event.pull_request.head.ref || github.ref_name }}
             Triggered by: ${{ github.actor }}
           exclude-workflow-initiator-as-approver: false
