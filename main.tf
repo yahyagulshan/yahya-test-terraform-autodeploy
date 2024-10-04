@@ -87,15 +87,18 @@ provider "aws" {
 data "aws_organizations_organization" "main" {}
 
 # Create Organizational Units
-# organizational unit-1
 resource "aws_organizations_organizational_unit" "sandbox" {
   name      = "Sandbox"
   parent_id = data.aws_organizations_organization.main.roots[0].id
 }
 
-# organizational unit-2
-resource "aws_organizations_organizational_unit" "Security" {
-  name      = "Security"
+resource "aws_organizations_organizational_unit" "logarchive" {
+  name      = "LogArchive"
+  parent_id = data.aws_organizations_organization.main.roots[0].id
+}
+
+resource "aws_organizations_organizational_unit" "audit" {
+  name      = "Audit"
   parent_id = data.aws_organizations_organization.main.roots[0].id
 }
 
@@ -106,13 +109,13 @@ resource "aws_organizations_account" "sandbox" {
   parent_id = aws_organizations_organizational_unit.sandbox.id
 }
 
-resource "aws_organizations_account" "Security" {
+resource "aws_organizations_account" "logarchive" {
   name      = "logarchive"
   email     = "logarchive-unique@example.com"
   parent_id = aws_organizations_organizational_unit.logarchive.id
 }
 
-resource "aws_organizations_account" "Security" {
+resource "aws_organizations_account" "audit" {
   name      = "audit"
   email     = "audit-unique@example.com"
   parent_id = aws_organizations_organizational_unit.audit.id
