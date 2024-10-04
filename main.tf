@@ -76,7 +76,7 @@ output "web-address" {
 
 
 ######################################
-# new code for control-tower
+## new code for control-tower
 ######################################
 
 # provider "aws" {
