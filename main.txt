@@ -118,3 +118,4 @@ resource "aws_config_config_rule" "example" {
     source_identifier = "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED"
   }
 }
+##
